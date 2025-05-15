@@ -1,0 +1,514 @@
+<app-top-menu (navigateToLogin)="navigateToLogin()"></app-top-menu>
+@if (isLoading) {
+  <app-spinner></app-spinner>
+}
+<div class="home-wrap">
+  <div class="row">
+    <div class="col-md-3 shortcutWrap">
+      <div class="panel panel-dark-outline tabs-panel">
+        <div class="panel-body tab-content">
+          <div class="tab-pane active documents-panel">
+
+            <div class="v-spacing-xs mb-4"></div>
+            <div class=" mb-4">
+              <h4 class="no-margin-top">Truy cập nhanh</h4>
+              <input [(ngModel)]="searchShortcut" class="form-control" type="text" placeholder="Tìm kiếm..">
+            </div>
+            <div class="folder-list d-flex flex-column align-items-start">
+              <p style=" font-size: 16px; " *ngIf="folder_shortcuts?.length == 0"> Chưa có lối tắt nào được thêm </p>
+              @for (fd of folder_shortcuts; track fd.id) {
+                <p *ngIf="containsWithoutDiacritics(fd.name, searchShortcut)" (click)="chooseFolder(fd)"
+                   class="position-relative folder-shortcut btn border-0 w-100 text-start"
+                   id="{{ 'shortcutItem_' + fd.id }}"
+                   [ngClass]="{'active': root_folder_opening && fd.id === root_folder_opening.id}">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                       fill="#fff305" stroke="#123456" stroke-width="1" stroke-linecap="round"
+                       stroke-linejoin="round"
+                       class="icon icon-tabler icons-tabler-outline icon-tabler-folder-open">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path
+                      d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                  {{ fd.name }}
+                  <span (click)="setShortcutFolder($event, fd, 'delete')"
+                        class="position-absolute btn text-danger fw-bold" style="top:-2px; right:0">x</span>
+                </p>
+              }
+              @for (file of file_shortcuts; track file) {
+                <p *ngIf="containsWithoutDiacritics(file.name, searchShortcut)"
+                   class="position-relative folder-shortcut btn border-0 w-100 text-start"
+                   (click)="chooseFileModal(file)">
+                  <svg *ngIf="file.type === 'link'" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                       fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/>
+                  </svg>
+                  <svg *ngIf="file.type !== 'link'" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                       fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                  </svg>
+                  {{ file.name }}
+                  <span (click)="setShortcutFile($event, file, 'delete')"
+                        class="position-absolute btn text-danger fw-bold" style="top:-2px; right:0">x</span>
+                </p>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-9 tab-content no-bg no-border documentWrap" style="user-select: none;min-height: 450px;">
+      <div class="tab-pane active documents documents-panel">
+        <div class="d-flex justify-content-between mb-3 header-file">
+          <nav aria-label="breadcrumb" *ngIf="breadcrumb.length > 1">
+            <ol class="breadcrumb" *ngIf="currentView === 'main'">
+              <ng-container *ngFor="let bc of breadcrumb; let i = index">
+                <ng-container *ngIf="isAdmin()">
+                  <li *ngIf="bc.id !== '-1_user_folder' && !isDuplicate(bc.id, i)"
+                      (click)="chooseFolder(bc)" class="breadcrumb-item link-primary">
+                    <svg *ngIf="bc.folder_id === null" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"
+                         style="position: relative; top: -2px;">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                    </svg>
+                    {{ bc.folder_id !== null ? bc.name : '' }}
+                  </li>
+                </ng-container>
+                <ng-container *ngIf="!isAdmin()">
+                  <li *ngIf="bc.id !== '-1_user_folder' && !isDuplicate(bc.id, i) && bc!.role"
+                      (click)="chooseFolder(bc)" class="breadcrumb-item link-primary">
+                    <svg *ngIf="bc.folder_id === null" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20" height="20"
+                         style="position: relative; top: -2px;">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                            d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                    </svg>
+                    {{ bc.folder_id !== null ? bc.name : '' }}
+                  </li>
+                </ng-container>
+                <li *ngIf="bc.id === '-1_user_folder' && !isDuplicate(bc.id, i)"
+                    (click)="loadFolderHomeUser()" class="breadcrumb-item link-primary xx">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                       stroke="currentColor" width="20" height="20" style="position: relative; top: -2px;">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+                  </svg>
+                </li>
+              </ng-container>
+            </ol>
+<!--            <ol class="breadcrumb" *ngIf="currentView == 'trash'">-->
+<!--              <li class="breadcrumb-item link-success" style="text-align: center;">-->
+<!--                Các mục trong khôi phục sẽ bị xóa vĩnh viễn sau 30 ngày.-->
+<!--              </li>-->
+<!--            </ol>-->
+          </nav>
+          <div class="d-flex actionWrap">
+            <button type="button" class="btn btn-success me-3" data-bs-toggle="modal"
+                    data-bs-target="#uploadFileModal" data-bs-whatever="@mdo" (click)="focusInput('nameUploadFile')">
+              Upload
+            </button>
+            <button type="button" class="btn btn-primary me-3" data-bs-toggle="modal"
+                    data-bs-target="#newFolderModal" data-bs-whatever="@mdo" (click)="focusInput('folderName')">New
+              Folder
+            </button>
+            <button (click)="viewTrash()" type="button" class="btn btn-info" style="color: #fff;">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#fff"
+                   class="size-2" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+              </svg>
+              Khôi phục
+            </button>
+          </div>
+        </div>
+        <div class="fm-search mb-4">
+          <div class="mb-0">
+            <div class="input-group input-group-lg">
+                      <span (click)="search($event, searchInput.value )" class="input-group-text bg-transparent"
+                            style=" position: absolute; top: 2px; border: unset; border-right: 1px solid #12345622; cursor: pointer; ">
+                          <svg xmlns="http://www.w3.org/2000/svg" stroke="#123456" stroke-width="2" viewBox="0 0 50 50"
+                               width="18" height="18"><path
+                            d="M 21 3 C 11.621094 3 4 10.621094 4 20 C 4 29.378906 11.621094 37 21 37 C 24.710938 37 28.140625 35.804688 30.9375 33.78125 L 44.09375 46.90625 L 46.90625 44.09375 L 33.90625 31.0625 C 36.460938 28.085938 38 24.222656 38 20 C 38 10.621094 30.378906 3 21 3 Z M 21 5 C 29.296875 5 36 11.703125 36 20 C 36 28.296875 29.296875 35 21 35 C 12.703125 35 6 28.296875 6 20 C 6 11.703125 12.703125 5 21 5 Z"/></svg>
+                      </span>
+              <form (submit)="search($event, searchInput.value )" style="flex: 1;">
+                <input style="padding-left: 60px;padding-right: 32px;" #searchInput type="text" class="form-control"
+                       placeholder="Tìm kiếm..">
+              </form>
+              <span (click)="clearSearch($event)" *ngIf="searchInput.value.length > 0"
+                    class="input-group-text bg-transparent"
+                    style=" position: absolute; top: 2px;right:0 ;border: unset; border-left: 1px solid #12345622; cursor: pointer; padding: 8px 4px; ">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                             stroke="currentColor" width="18" height="18">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                      </span>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-start mb-2" style="cursor: default;">
+          <div class="mt-1 mb-4 d-flex gap-1 items-center" *ngIf="currentView === 'main'">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" width="20"
+                 height="20" stroke="blue" class="size-2" style="position: relative; top: 2px;">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 0 0 .75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 0 0-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0 1 12 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 0 1-.673-.38m0 0A2.18 2.18 0 0 1 3 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 0 1 3.413-.387m7.5 0V5.25A2.25 2.25 0 0 0 13.5 3h-3a2.25 2.25 0 0 0-2.25 2.25v.894m7.5 0a48.667 48.667 0 0 0-7.5 0M12 12.75h.008v.008H12v-.008Z"/>
+            </svg>
+            <span style="font-weight: 600;">Reports</span>
+          </div>
+          <div class="mt-1 mb-4 d-flex gap-1 items-center" *ngIf="currentView !== 'main'">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" width="20"
+                 height="20" stroke="blue" class="size-2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+            </svg>
+            <span style="font-weight: 600;">Khôi phục</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <div (click)="beforeSetFilter()" class="homeIcon filter" id="dropdownMenuButtonFilter"
+                 data-bs-toggle="dropdown">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" width="20"
+                   height="20" stroke="#051568" class="size-2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"/>
+              </svg>
+            </div>
+            <ul class="dropdown-menu action">
+              <li>
+                <button class="btn btn-light w-100 {{ filterShow == 'all' ? 'active' : '' }}"
+                        (click)="setFilter($event, 'all')">Tất cả
+                </button>
+              </li>
+              <li>
+                <button class="btn btn-light w-100 {{ filterShow == 'file' ? 'active' : '' }}"
+                        (click)="setFilter($event, 'file')">Chỉ hiển thị tập tin
+                </button>
+              </li>
+              <li>
+                <button class="btn btn-light w-100 {{ filterShow == 'folder' ? 'active' : '' }}"
+                        (click)="setFilter($event, 'folder')">Chỉ hiển thị thư mục
+                </button>
+              </li>
+              <li>
+                <button class="btn btn-light w-100 {{ filterShow == 'date_created' ? 'active' : '' }}"
+                        (click)="setFilter($event, 'date_created')">Ngày tải lên
+                </button>
+              </li>
+              <li>
+                <button class="btn btn-light w-100 {{ filterShow == 'date_updated' ? 'active' : '' }}"
+                        (click)="setFilter($event, 'date_updated')">Ngày cập nhật
+                </button>
+              </li>
+            </ul>
+            <div (click)="styleViewClick($event)" class="homeIcon">
+              <svg *ngIf="styleView == 'list'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke-width="1.5" width="20" height="20" stroke="#051568" class="size-2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
+              </svg>
+              <svg *ngIf="styleView == 'grid'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                   stroke-width="1.5" width="20" height="20" stroke="#051568" class="size-2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <app-main-list
+          *ngIf="currentView === 'main'"
+          [allItem]="allItem" [styleView]="styleView"
+          [breadcrumb]="breadcrumb"
+          [folder_shortcuts]="folder_shortcuts"
+          [root_folder_opening]="root_folder_opening"
+          (changeRootFolder)="changeRootFolder($event)"
+          [file_shortcuts]="file_shortcuts"></app-main-list>
+
+        <app-trash-list
+          *ngIf="currentView !== 'main'" [styleView]="styleView"
+          [allItem]="allItem" [breadcrumb]="breadcrumb"></app-trash-list>
+
+      </div>
+
+    </div>
+  </div>
+  <div class="row permissionWrap">
+    <div class="col-md-3">
+      <div class="panel panel-dark-outline tabs-panel">
+        <div class="panel-body tab-content">
+          <div class="tab-pane active documents-panel">
+            <div class="v-spacing-xs mb-4"></div>
+            <div class="mb-4">
+              <h4 class="no-margin-top">
+                {{ isAdmin() ? 'Tất cả reports' : 'Reports phân quyền của tôi' }}
+              </h4>
+              <input [(ngModel)]="searchMyfolder" class="form-control" type="text" placeholder="Tìm kiếm..">
+            </div>
+            <div class="folder-list d-flex flex-column align-items-start">
+              <p style=" font-size: 16px; " *ngIf="folders?.length == 0"> Chưa có báo cáo được phân quyền </p>
+              @for (fd of folders; track fd.id) {
+                <div *ngIf="containsWithoutDiacritics(fd.name, searchMyfolder) && fd.folder_id != null"
+                     class="d-flex align-items-center w-100">
+                  <p (click)="chooseFolder(fd)"
+                     class="my-report position-relative folder-shortcut btn border-0 w-100 text-start">
+                    @for (name of fd.breadcrumb; track name; let last = $last) {
+                      {{ name }}
+                      <svg *ngIf="!last" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                           stroke-width="2" stroke="currentColor" width="14" height="14"
+                           style="top: -1px;position: relative;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+                      </svg>
+                    }
+                    <span *ngIf="fd.role" class="badge badge-success" style=" float: right; top: 2px; ">
+                            {{ fd.role }}
+                          </span>
+                  </p>
+                  <svg *ngIf="isAdmin()" style=" position: relative; top: -8px; "
+                       (click)="dropdownMenu($event, fd.id, 'dropdownAddUserToFolder')"
+                       id="dropdownAddUserToFolder{{ fd.id }}" data-bs-toggle="dropdown"
+                       xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                       stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                       class="icon icon-tabler icons-tabler-outline icon-tabler-dots-vertical">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                    <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                    <path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/>
+                  </svg>
+                  <ul *ngIf="isAdmin()" class="dropdown-menu action"
+                      [attr.aria-labelledby]="'dropdownAddUserToFolder'+ fd.id ">
+                    <li>
+                      <button data-bs-toggle="modal"
+                              data-bs-target="#managerFolderAdmin" data-bs-whatever="@mdo"
+                              (click)="onClickEditFileOrFolder(fd,$index)" class="btn btn-light w-100">Quản lý người
+                        dùng
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              }
+            </div>
+            <nav *ngIf="paginations.length > 0 && folders!.length > 0" aria-label="User manager navigation"
+                 class="mb-2 mt-1">
+              <ul class="pagination">
+                @for (pagination of paginations; track $index) {
+                  <li class="page-item">
+                    <button (click)="getNumberPage(pagination.url)" style=" font-size: 12.5px; font-weight: 600; "
+                            class="page-link {{ pagination.active ? 'active' : '' }}">{{ pagination.label }}
+                    </button>
+                  </li>
+                }
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- newFolderModal -->
+  <div class="modal fade" id="newFolderModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header d-flex justify-content-center">
+          <h5 class="modal-title" id="newFolderModalLabel">TẠO THƯ MỤC</h5>
+        </div>
+        <div class="modal-body">
+          <form (submit)="createNewFolder($event, folderName)">
+            <div class="mb-3">
+              <label for="folder-name" class="col-form-label">Tên thư mục:</label>
+              <input #folderName type="text" class="form-control" id="folder-name">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button #closeNewFolderModal type="button" class="btn btn-secondary"
+                  data-bs-dismiss="modal">Đóng
+          </button>
+          <button (click)="createNewFolder($event,folderName)" type="button"
+                  class="btn btn-primary">Tạo mới
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- uploadFileModal -->
+  <div class="modal fade" id="uploadFileModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="uploadFileModalLabel">Tải lên</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="fileName" class="form-label fw-bold">Tên</label>
+            <input #nameUploadFile type="text" class="form-control" id="fileName" placeholder="Nhập tên..">
+          </div>
+          <div class="d-flex gap-2 mb-4">
+            <div class="form-check me-4">
+              <input class="form-check-input" type="radio" name="uploadFileRadio" id="uploadFileRadio"
+                     (change)="onOptionChange_uploadFile('file')">
+              <label style=" top: -1px; position: relative; " class="form-check-label" for="uploadFileRadio">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                     stroke="currentColor" width="16" height="16">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/>
+                </svg>
+                Tập tin
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="uploadFileRadio" id="createLinkRadio"
+                     (change)="onOptionChange_uploadFile('link')"
+                     checked>
+              <label style=" top: -1px; position: relative; " class="form-check-label" for="createLinkRadio">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                     stroke="currentColor" width="16" height="16">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/>
+                </svg>
+                Liên kết
+              </label>
+            </div>
+          </div>
+          <div *ngIf="selectedOption_uploadFile === 'file';else linkInput">
+            <div class="mb-3 mt-3">
+              <input #inputUploadFile type="file" class="form-control" id="fileInput"
+                     accept="image/png, image/jpg, image/jpeg, .pdf, .docx, .doc, .xlsx, .xls, .ppt, .pptx" multiple>
+            </div>
+          </div>
+          <ng-template #linkInput>
+            <div class="mb-3">
+              <label for="linkValue" class="form-label fw-bold">Nhập liên kết</label>
+              <input #inputUploadFile type="text" class="form-control" id="linkValue" placeholder="Nhập liên kết..">
+            </div>
+          </ng-template>
+        </div>
+        <div class="modal-footer">
+          <button #closeUploadModal type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+          <button *ngIf="selectedOption_uploadFile === 'file';else containerBtnLinkSubmit"
+                  (click)="uploadFileOrLink(inputUploadFile.nativeElement.files, nameUploadFile.value)" type="button"
+                  class="btn btn-primary">Tải lên file
+          </button>
+          <ng-template #containerBtnLinkSubmit>
+            <button (click)="uploadFileOrLink(inputUploadFile.nativeElement.value,nameUploadFile.value)" type="button"
+                    class="btn btn-primary">Lưu liên kết
+            </button>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- add user modal -->
+<div class="modal fade" id="managerFolderAdmin" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="managerFolderAdminLabel">Thêm người dùng vào folder
+          - {{ editingItem?.item?.name ?? 'undefined' }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div *ngIf="editingItem && ! instanceOfFile(editingItem.item)" class="modal-body">
+        <div *ngIf="flagViewAddUsers" class="">
+          <div class="mb-3">
+            <label for="id_user" class="form-label fw-bold">ID User</label>
+            <input #idShare type="text" class="form-control" id="id_user"
+                   placeholder="Nhập ID user, ngăn cách bởi dấu phẩy">
+          </div>
+          <div class="mb-3">
+            <label for="role_select" class="form-label fw-bold">Role</label>
+            <select id="role_select" #selectRole class="form-select" aria-label="Default select example">
+              <option value="admin">Admin (Xem, Tạo, Sửa, Xóa)</option>
+              <option value="editor" selected>Editor (Xem, Tạo, Sửa)</option>
+              <option value="viewer">Viewer (Xem)</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button #closeEditModal type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            <button (click)="addUserOrUpdateRoleForFolder()" type="button" class="btn btn-primary">Xác nhận</button>
+          </div>
+        </div>
+        <div *ngIf="editingItem && editingItem.item.app_list_user && !flagViewAddUsers" class="mt-2">
+          <input [(ngModel)]="searchUserRoleInFolder" class="form-control mb-4" type="text" placeholder="Tìm kiếm..">
+          <div class="list-user-folder-permission">
+            <div *ngIf="editingItem.item.app_list_user.admin.length" class="d-flex align-items-center mb-2 flex-wrap">
+              @for (user of editingItem.item.app_list_user.admin; track user) {
+                <div
+                  *ngIf="containsWithoutDiacritics(user.name + user.id + user.username + 'admin', searchUserRoleInFolder)"
+                  class="d-flex align-items-center w-100">
+                  <p class="position-relative folder-shortcut btn border-0 w-100 text-start">
+                    {{ user.name }} <span class="badge badge-primary">{{ user.username }}</span>
+                    <span class="badge badge-success" style=" float: right; top: 2px; ">
+                            admin
+                          </span>
+                  </p>
+                  <svg style=" position: relative; top: -8px; " (click)="removeRole(user, 'admin')"
+                       xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                       stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                  </svg>
+                </div>
+              }
+            </div>
+            <div *ngIf="editingItem.item.app_list_user.editors.length" class="d-flex align-items-center mb-2 flex-wrap">
+              @for (user of editingItem.item.app_list_user.editors; track user.id) {
+                <div
+                  *ngIf="containsWithoutDiacritics(user.name + user.id + user.username + 'editor', searchUserRoleInFolder)"
+                  class="d-flex align-items-center w-100">
+                  <p class="position-relative folder-shortcut btn border-0 w-100 text-start">
+                    {{ user.name }} <span class="badge badge-primary">{{ user.username }}</span>
+                    <span class="badge badge-success" style=" float: right; top: 2px; ">
+                            editor
+                          </span>
+                  </p>
+                  <svg style=" position: relative; top: -8px; " (click)="removeRole(user, 'editor')"
+                       xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                       stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                  </svg>
+                </div>
+              }
+            </div>
+            <div *ngIf="editingItem.item.app_list_user.viewers.length" class="d-flex align-items-center mb-2 flex-wrap">
+              @for (user of editingItem.item.app_list_user.viewers; track user.id) {
+                <div
+                  *ngIf="containsWithoutDiacritics(user.name + user.id + user.username + 'viewer', searchUserRoleInFolder)"
+                  class="d-flex align-items-center w-100">
+                  <p class="position-relative folder-shortcut btn border-0 w-100 text-start">
+                    {{ user.name }} <span class="badge badge-primary">{{ user.username }}</span>
+                    <span class="badge badge-success" style=" float: right; top: 2px; ">
+                            viewer
+                          </span>
+                  </p>
+                  <svg style=" position: relative; top: -8px; " (click)="removeRole(user, 'viewer')"
+                       xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                       stroke="currentColor" width="16" height="16">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                  </svg>
+                </div>
+              }
+            </div>
+          </div>
+          <div
+            *ngIf=" ! editingItem.item.app_list_user.admin.length && ! editingItem.item.app_list_user.editors.length && ! editingItem.item.app_list_user.viewers.length">
+            <h5 class="text-muted" style=" text-align: center; margin-bottom: 16px;">Chưa có người dùng nào!</h5>
+          </div>
+        </div>
+        <div class="d-flex justify-content-center gap-2" style=" border-top: 1px solid #1f295f2b; padding-top: 16px; ">
+          <button class="btn btn-success" (click)="modalViewManagerUser()">
+            {{ flagViewAddUsers ? 'Danh sách' : 'Thêm mới' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<app-mobile-nav
+  [allItem]="allItem" [breadcrumb]="breadcrumb"
+  [root_folder_opening]="root_folder_opening"
+  (viewChangeTrash)="onViewChange('trash')"
+  (viewChangeMain)="onViewChange('main')"
+  (focusInput)="focusInput($event)"
+  (loadFolderHomeUser)="loadFolderHomeUser()"></app-mobile-nav>

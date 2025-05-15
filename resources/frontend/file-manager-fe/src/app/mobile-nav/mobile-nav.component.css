@@ -1,0 +1,117 @@
+.mobile-nav {
+  position: fixed;
+  background-color: #fafafa;
+  border-top: 1px solid #12345622;
+  -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+          box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1001;
+  height: 62px;
+  padding: 4px 8px;
+}
+
+.action-mobile {
+  position: fixed;
+  bottom: 72px;
+  right: 16px;
+  z-index: 1000;
+}
+
+.action-mobile-list {
+  position: absolute;
+  top: -90px;
+  left: -190px;
+  -webkit-transform: translate(100%, 120%);
+          transform: translate(100%, 120%);
+  -webkit-transition: .2s linear;
+  transition: .2s linear;
+  border-radius: 10px;
+  opacity: 0;
+  -webkit-transform-origin: bottom right;
+          transform-origin: bottom right;
+}
+
+.action-mobile-list.active {
+  -webkit-transform: translate(0, 0);
+          transform: translate(0, 0);
+  opacity: 1;
+}
+
+.plus-action {
+  -webkit-transition: .15s linear;
+  transition: .15s linear;
+  -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.138);
+          box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.138);
+  border-radius: 50%;
+  background-color: #9c99e28a;
+}
+
+.plus-action.active {
+  -webkit-transform: scale(1.1) rotate(45deg);
+          transform: scale(1.1) rotate(45deg);
+  cursor: pointer;
+}
+
+.action-mobile-item {
+  background-color: #fff;
+  z-index: 1000;
+  margin: 8px 0;
+  list-style: none;
+  padding: 4px 12px;
+  -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+          box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  min-width: 150px;
+  border: 1px solid #12345629;
+  -webkit-transition: 0.2s linear;
+  transition: 0.2s linear;
+}
+
+.action-mobile-item:hover {
+  background-color: #f5f5f5;
+  cursor: pointer;
+  -webkit-transform: scale(1.05);
+          transform: scale(1.05);
+}
+
+.action-mobile-item div span {
+  font-size: 12.5px;
+  padding-left: 6px;
+  font-weight: 600;
+}
+
+.mobile-nav__item {
+  height: 100%;
+  padding: 0 8px;
+}
+
+.mobile-nav__link {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+      -ms-flex-direction: column;
+          flex-direction: column;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #123456;
+  min-width: 66px;
+  -webkit-transition: .2s linear;
+  transition: .2s linear;
+}
+
+.mobile-nav__link.active {
+  color: #6e6ece;
+}
+/*# sourceMappingURL=mobile-nav.component.css.map */

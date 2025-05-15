@@ -1,0 +1,24 @@
+.td-wrap {
+  overflow-wrap: anywhere;
+}
+
+tr.size-sm th {
+  font-size: 14px;
+  white-space: nowrap;
+  color: #123456;
+}
+
+tr.size-sm td {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.list-user-folder-permission {
+  max-height: 366px;
+  overflow-y: auto;
+}
+
+.list-user-folder-permission::-webkit-scrollbar {
+  display: none;
+}
+/*# sourceMappingURL=user-manager.component.css.map */

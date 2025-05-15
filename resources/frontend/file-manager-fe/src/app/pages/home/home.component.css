@@ -1,0 +1,36 @@
+.homeIcon {
+  cursor: pointer;
+  background-color: #fafafa;
+  border: 1px solid #12345622;
+  border-radius: 50%;
+  -webkit-box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+          box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+  -webkit-transition: .15s linear;
+  transition: .15s linear;
+  width: 40px;
+  height: 40px;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
+.homeIcon.active,
+.homeIcon:hover {
+  background-color: #9c99e28a;
+}
+
+.list-user-folder-permission {
+  max-height: 366px;
+  overflow-y: auto;
+}
+
+.list-user-folder-permission::-webkit-scrollbar {
+  display: none;
+}
+/*# sourceMappingURL=home.component.css.map */

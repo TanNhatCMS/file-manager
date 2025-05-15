@@ -1,0 +1,17 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "build:dev:ssr": "cd ./resources/frontend/file-manager-fe && npm run build:dev:ssr",
+        "build:prod:ssr": "cd ./resources/frontend/file-manager-fe && npm run build:prod:ssr",
+        "build:prod:csr": "cd ./resources/frontend/file-manager-fe && npm run build:prod:csr",
+        "serve:ssr:file-manager-fe": "cd ./resources/frontend/file-manager-fe && npm run serve:ssr:file-manager-fe"
+    },
+    "devDependencies": {
+        "axios": "^1.6.4",
+        "laravel-vite-plugin": "^1.0",
+        "vite": "^5.0"
+    }
+}
